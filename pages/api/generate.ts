@@ -18,11 +18,7 @@ export default async function handler(req: Request): Promise<Response> {
     const vibe = body.vibe;
     const sentence = body.sentence;
 
-    const systemPrompt = `You are a helpful assistant that will generate 3 rephrased sentence in ${vibe} tone`;
-
-    console.log(vibe);
-    console.log(sentence);
-    console.log(systemPrompt);
+    const systemPrompt = `You are a helpful grammar assistant that will correct grammar and generate 3 rephrased sentence in ${vibe} tone. You must not provide other text but only provide the rephrased sentence numbered using 1., 2. and 3 format. You will not ask but always rephrase what is provided by the user.`;
 
     const stream = await OpenAI(
       'chat',
@@ -35,15 +31,12 @@ export default async function handler(req: Request): Promise<Response> {
           },
           {
             role: 'user',
-            content: `${sentence}`,
+            content: `Rephrase this "${sentence}"`,
           },
         ],
         max_tokens: 500,
       },
-      {
-        apiKey: process.env.OPENAI_API_KEY,
-        mode: 'tokens',
-      }
+      {}
     );
 
     return new Response(stream);

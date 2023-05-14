@@ -26,6 +26,7 @@ export default function Home() {
     setLoading(true);
     sentence = cleanUpString(sentence);
 
+    setRephrasedSentences('');
     const response = await fetch('/api/generate', {
       method: 'POST',
       body: JSON.stringify({
@@ -38,7 +39,12 @@ export default function Home() {
     });
 
     if (!response.ok) {
-      throw new Error(response.statusText);
+      toast('An error occured, please try again.', {
+        icon: '⛔',
+      });
+      setLoading(false);
+      return;
+      // throw new Error(response.statusText);
     }
     const data = response.body;
     if (!data) return;
@@ -90,13 +96,7 @@ export default function Home() {
                 className='rounded'
                 onChange={(e) => setVibe(e.target.value)}
                 value={vibe}
-                options={[
-                  'casual',
-                  'formal',
-                  'friendly',
-                  'professional',
-                  'creative',
-                ]}
+                options={['casual', 'friendly', 'professional', 'creative']}
               />
             </div>
 
@@ -113,7 +113,7 @@ export default function Home() {
             {rephrasedSentences && (
               <>
                 <hr />
-                <h3 className='text-center text-xl mt-3 mb-5'>
+                <h3 className='text-center text-xl mt-3 mb-5 font-semibold'>
                   Rephrased Sentences
                 </h3>
                 {rephrasedSentences.split('\n').map((sentence, index) => {

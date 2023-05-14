@@ -72,7 +72,7 @@ export default function Home() {
         toastOptions={{ duration: 2000 }}
       />
       <div className='bg-neutral w-full h-10 md:h-20 mb-10'></div>
-      <div className='max-w-prose'>
+      <div className='max-w-prose px-8 md:px-0'>
         <div className='flex  flex-col items-center justify-start py-2'>
           <header className='mb-10 md:mb-16'>
             <h1 className='text-3xl font-bold underline leading-relaxed text-center'>
@@ -90,10 +90,10 @@ export default function Home() {
                 value={sentence}
               />
             </div>
-            <div className='flex flex-row justify-between gap-5 items-center'>
+            <div className='flex flex-col sm:flex-row justify-between gap-5 items-center'>
               <p>Select tone:</p>
               <Select
-                className='rounded'
+                className='rounded w-full max-w-full sm:max-w-xs'
                 onChange={(e) => setVibe(e.target.value)}
                 value={vibe}
                 options={['casual', 'friendly', 'professional', 'creative']}

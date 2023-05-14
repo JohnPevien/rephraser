@@ -11,7 +11,7 @@ export default function TextField({
 }: Props) {
   return (
     <select
-      className={`select select-bordered w-full max-w-xs ${className}`}
+      className={`select select-bordered w-full ${className}`}
       onChange={onChange}
       value={value}
     >

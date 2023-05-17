@@ -21,12 +21,26 @@ export default function Home() {
   const [vibe, setVibe] = useState('casual');
   const [rephrasedSentences, setRephrasedSentences] = useState('');
   const [loading, setLoading] = useState(false);
+  const [correctGrammar, setCorrectGrammar] = useState(true);
+  const [suggestedSentence, setSuggestedSentence] = useState('');
 
   const generateSentence = async (sentence: string, vibe: string) => {
     setLoading(true);
+    setCorrectGrammar(true);
+    setSuggestedSentence('');
     sentence = cleanUpString(sentence);
 
     setRephrasedSentences('');
+
+    const grammarCheck = await checkGrammar(sentence);
+    const isGrammaticallyCorrect = grammarCheck?.grammarCheck === 'true';
+    const suggestedSentence = grammarCheck?.suggestedSentence;
+
+    if (!isGrammaticallyCorrect) {
+      setCorrectGrammar(false);
+      setSuggestedSentence(suggestedSentence || '');
+    }
+
     const response = await fetch('/api/generate', {
       method: 'POST',
       body: JSON.stringify({
@@ -62,6 +76,61 @@ export default function Home() {
     setLoading(false);
   };
 
+  const checkGrammar = async (sentence: string) => {
+    const response = await fetch('/api/checkgrammar', {
+      method: 'POST',
+      body: JSON.stringify({
+        sentence,
+        vibe,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      toast('An error occured, please try again.', {
+        icon: '⛔',
+      });
+      setLoading(false);
+      return;
+      // throw new Error(response.statusText);
+    }
+    const data = response.body;
+    if (!data) return;
+    const reader = data.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let text = '';
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value);
+      text += chunkValue;
+    }
+
+    // Find the index of the newline character (\n) to split the string
+    const newlineIndex = text.indexOf('\n');
+
+    // Extract the substrings before and after the newline character
+    const grammarCheckString = text.substring(0, newlineIndex);
+    const suggestedSentenceString = text.substring(newlineIndex + 1);
+
+    // Remove the leading and trailing spaces from the extracted substrings
+    const grammarCheck = grammarCheckString
+      .toLowerCase()
+      .replace('grammarcheck:', '')
+      .replace(/"/g, '')
+      .trim();
+    const suggestedSentence = suggestedSentenceString
+      .replace('suggestedsentence:', '')
+      .replace(/"/g, '')
+      .trim();
+
+    return { grammarCheck, suggestedSentence };
+  };
+
   return (
     <main
       className={`flex  flex-col items-center justify-start ${inter.className}`}
@@ -89,6 +158,14 @@ export default function Home() {
                 }}
                 value={sentence}
               />
+              {!correctGrammar && (
+                <>
+                  <p className='text-sm mt-2 text-gray-500'>Grammar Checker:</p>
+                  <p className='text-xs text-gray-500 mt-2'>
+                    {`${suggestedSentence}`}
+                  </p>
+                </>
+              )}
             </div>
             <div className='flex flex-col sm:flex-row justify-between gap-5 items-center'>
               <p>Select tone:</p>
@@ -118,7 +195,11 @@ export default function Home() {
                 </h3>
                 {rephrasedSentences.split('\n').map((sentence, index) => {
                   if (sentence === '') return;
-                  sentence = sentence.trim().replace('- ', '');
+                  sentence = sentence
+                    .replace('- ', '')
+                    .replace(/^\d+\.\s/gm, '')
+                    .replace(/"/g, '')
+                    .trim();
                   return (
                     <Card
                       text={sentence}

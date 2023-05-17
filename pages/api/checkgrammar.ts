@@ -17,7 +17,7 @@ export default async function handler(req: Request): Promise<Response> {
     }
     const sentence = body.sentence;
 
-    const systemPrompt = `You are a grammar checker and you will give 1 suggestion on how to possibly fix it. The format will be
+    const systemPrompt = `You are a very strict grammar checker. You will check the English grammar and it should be perfectly correct and grammar and you will give 1 suggestion on how to possibly fix it. The format will be
     grammarcheck: (true or false)
     then
     suggestedsentence: (the suggested sentence)

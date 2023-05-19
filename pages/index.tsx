@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { TextField, Button, Select } from '@/components/form';
 import { Card } from '@/components/suggestion';
 import { Toaster, toast } from 'react-hot-toast';
+import { AiFillGithub, AiOutlineTwitter } from 'react-icons/ai';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -216,6 +217,45 @@ export default function Home() {
                 })}
               </>
             )}
+          </div>
+        </div>
+        <hr className='mb-5' />
+        <div className='flex flex-row justify-between items-center'>
+          <div>
+            <p>
+              Powered by{' '}
+              <a
+                href='https://openai.com/blog/chatgpt'
+                className='underline'
+                rel='noreferrer'
+              >
+                OpenAI
+              </a>{' '}
+              and{' '}
+              <a
+                href='https://vercel.com/'
+                className='underline'
+                rel='noreferrer'
+              >
+                Vercel
+              </a>
+            </p>
+          </div>
+          <div className='flex flex-row gap-3'>
+            <a
+              href='https://github.com/JohnPevien/rephraser
+            '
+              rel='noreferrer'
+            >
+              <AiFillGithub size={'2em'} />
+            </a>
+            <a
+              href='https://twitter.com/JohnPevien
+            '
+              rel='noreferrer'
+            >
+              <AiOutlineTwitter size={'2em'} />
+            </a>
           </div>
         </div>
       </div>

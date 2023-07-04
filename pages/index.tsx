@@ -159,9 +159,10 @@ export default function Home() {
                 }}
                 value={sentence}
               />
-              <p className={`text-sm mt-2 `}>Grammar Checker:</p>
+
               {!correctGrammar && (
                 <>
+                  <p className={`text-sm mt-2 `}>Suggested Sentence:</p>
                   <p className='text-xs text-gray-500 mt-2'>
                     {`${suggestedSentence}`}
                   </p>

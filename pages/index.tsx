@@ -159,9 +159,10 @@ export default function Home() {
                 }}
                 value={sentence}
               />
+
               {!correctGrammar && (
                 <>
-                  <p className='text-sm mt-2 text-gray-500'>Grammar Checker:</p>
+                  <p className={`text-sm mt-2 `}>Suggested Sentence:</p>
                   <p className='text-xs text-gray-500 mt-2'>
                     {`${suggestedSentence}`}
                   </p>
@@ -220,7 +221,7 @@ export default function Home() {
           </div>
         </div>
         <hr className='mb-5' />
-        <div className='flex flex-row justify-between items-center'>
+        <div className='flex flex-row justify-between items-center mb-8'>
           <div>
             <p>
               Powered by{' '}

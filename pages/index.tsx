@@ -220,7 +220,7 @@ export default function Home() {
           </div>
         </div>
         <hr className='mb-5' />
-        <div className='flex flex-row justify-between items-center'>
+        <div className='flex flex-row justify-between items-center mb-8'>
           <div>
             <p>
               Powered by{' '}

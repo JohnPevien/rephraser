@@ -133,93 +133,97 @@ export default function Home() {
   };
 
   return (
-    <main
-      className={`flex  flex-col items-center justify-start ${inter.className}`}
-    >
-      <Toaster
-        position='top-center'
-        reverseOrder={false}
-        toastOptions={{ duration: 2000 }}
-      />
-      <div className='bg-neutral w-full h-10 md:h-20 mb-10'></div>
-      <div className='max-w-prose px-8 md:px-0'>
-        <div className='flex  flex-col items-center justify-start py-2'>
-          <header className='mb-10 md:mb-16'>
-            <h1 className='text-3xl font-bold underline leading-relaxed text-center'>
-              Rephraser
-            </h1>
-            <p>A rephraser and grammar checker app powered by OpenAI API.</p>
-          </header>
-          <div className='w-full flex flex-col gap-5'>
-            <div>
-              <TextField
-                className='rounded border-2 border-neutral w-full max-w-full'
-                onChange={(e) => {
-                  setSentence(e.target.value);
-                }}
-                value={sentence}
-              />
+    <>
+      <main
+        className={`flex  flex-col items-center min-h-[90vh] justify-start ${inter.className}`}
+      >
+        <Toaster
+          position='top-center'
+          reverseOrder={false}
+          toastOptions={{ duration: 2000 }}
+        />
+        <div className='bg-neutral w-full h-10 md:h-20 mb-10'></div>
+        <div className='max-w-prose px-8 md:px-0'>
+          <div className='flex  flex-col items-center justify-start py-2'>
+            <header className='mb-10 md:mb-16'>
+              <h1 className='text-3xl font-bold underline leading-relaxed text-center'>
+                Rephraser
+              </h1>
+              <p>A rephraser and grammar checker app powered by OpenAI API.</p>
+            </header>
+            <div className='w-full flex flex-col gap-5'>
+              <div>
+                <TextField
+                  className='rounded border-2 border-neutral w-full max-w-full'
+                  onChange={(e) => {
+                    setSentence(e.target.value);
+                  }}
+                  value={sentence}
+                />
 
-              {!correctGrammar && (
+                {!correctGrammar && (
+                  <>
+                    <p className={`text-sm mt-2 `}>Suggested Sentence:</p>
+                    <p className='text-xs text-gray-500 mt-2'>
+                      {`${suggestedSentence}`}
+                    </p>
+                  </>
+                )}
+              </div>
+              <div className='flex flex-col sm:flex-row justify-between gap-5 items-center'>
+                <p>Select tone:</p>
+                <Select
+                  className='rounded w-full max-w-full sm:max-w-xs'
+                  onChange={(e) => setVibe(e.target.value)}
+                  value={vibe}
+                  options={['casual', 'friendly', 'professional', 'creative']}
+                />
+              </div>
+
+              <Button
+                onClick={() => generateSentence(sentence, vibe)}
+                disabled={loading}
+              >
+                Rephrase
+              </Button>
+              <p className='text-xs text-center'></p>
+            </div>
+
+            <div className='w-full mt-10'>
+              {rephrasedSentences && (
                 <>
-                  <p className={`text-sm mt-2 `}>Suggested Sentence:</p>
-                  <p className='text-xs text-gray-500 mt-2'>
-                    {`${suggestedSentence}`}
-                  </p>
+                  <hr />
+                  <h3 className='text-center text-xl mt-3 mb-5 font-semibold'>
+                    Rephrased Sentences
+                  </h3>
+                  {rephrasedSentences.split('\n').map((sentence, index) => {
+                    if (sentence === '') return;
+                    sentence = sentence
+                      .replace('- ', '')
+                      .replace(/^\d+\.\s/gm, '')
+                      .replace(/"/g, '')
+                      .trim();
+                    return (
+                      <Card
+                        text={sentence}
+                        key={index}
+                        className='text-center w-full mb-5'
+                        onClick={() => {
+                          navigator.clipboard.writeText(sentence);
+                          toast('Sentence have been copied to clipboard', {
+                            icon: '✂️',
+                          });
+                        }}
+                      />
+                    );
+                  })}
                 </>
               )}
             </div>
-            <div className='flex flex-col sm:flex-row justify-between gap-5 items-center'>
-              <p>Select tone:</p>
-              <Select
-                className='rounded w-full max-w-full sm:max-w-xs'
-                onChange={(e) => setVibe(e.target.value)}
-                value={vibe}
-                options={['casual', 'friendly', 'professional', 'creative']}
-              />
-            </div>
-
-            <Button
-              onClick={() => generateSentence(sentence, vibe)}
-              disabled={loading}
-            >
-              Rephrase
-            </Button>
-            <p className='text-xs text-center'></p>
-          </div>
-
-          <div className='w-full mt-10'>
-            {rephrasedSentences && (
-              <>
-                <hr />
-                <h3 className='text-center text-xl mt-3 mb-5 font-semibold'>
-                  Rephrased Sentences
-                </h3>
-                {rephrasedSentences.split('\n').map((sentence, index) => {
-                  if (sentence === '') return;
-                  sentence = sentence
-                    .replace('- ', '')
-                    .replace(/^\d+\.\s/gm, '')
-                    .replace(/"/g, '')
-                    .trim();
-                  return (
-                    <Card
-                      text={sentence}
-                      key={index}
-                      className='text-center w-full mb-5'
-                      onClick={() => {
-                        navigator.clipboard.writeText(sentence);
-                        toast('Sentence have been copied to clipboard', {
-                          icon: '✂️',
-                        });
-                      }}
-                    />
-                  );
-                })}
-              </>
-            )}
           </div>
         </div>
+      </main>
+      <footer className='container mx-auto max-w-prose'>
         <hr className='mb-5' />
         <div className='flex flex-row justify-between items-center mb-8'>
           <div>
@@ -259,7 +263,7 @@ export default function Home() {
             </a>
           </div>
         </div>
-      </div>
-    </main>
+      </footer>
+    </>
   );
 }

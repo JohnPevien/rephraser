@@ -176,7 +176,15 @@ export default function Home() {
                   className='rounded w-full max-w-full sm:max-w-xs'
                   onChange={(e) => setVibe(e.target.value)}
                   value={vibe}
-                  options={['casual', 'friendly', 'professional', 'creative']}
+                  options={[
+                    'Professional',
+                    'Conversational',
+                    'Humorous',
+                    'Empatic',
+                    'Academic',
+                    'Simple',
+                    'Creative',
+                  ]}
                 />
               </div>
 

@@ -4,6 +4,7 @@ import { TextField, Button, Select } from '@/components/form';
 import { Card } from '@/components/suggestion';
 import { Toaster, toast } from 'react-hot-toast';
 import { AiFillGithub, AiOutlineTwitter } from 'react-icons/ai';
+import Head from 'next/head';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -134,6 +135,9 @@ export default function Home() {
 
   return (
     <>
+      <Head>
+        <title>Rephraser</title>
+      </Head>
       <main
         className={`flex  flex-col items-center min-h-[90vh] justify-start ${inter.className}`}
       >

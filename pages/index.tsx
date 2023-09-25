@@ -190,7 +190,7 @@ export default function Home() {
 
               <Button
                 onClick={() => generateSentence(sentence, vibe)}
-                disabled={loading}
+                disabled={loading || !sentence || sentence.length < 7}
               >
                 Rephrase
               </Button>

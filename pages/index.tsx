@@ -220,7 +220,7 @@ export default function Home() {
                     Rephrased Sentences
                   </h3>
                   {rephrasedSentences.split('\n').map((sentence, index) => {
-                    if (sentence === '') return;
+                    if (sentence.length < 7) return;
                     sentence = sentence
                       .replace('- ', '')
                       .replace(/^\d+\.\s/gm, '')

@@ -78,6 +78,13 @@ export default function Home() {
     setLoading(false);
   };
 
+  const tryAgain = () => {
+    setSentence('');
+    setRephrasedSentences('');
+    setCorrectGrammar(true);
+    setSuggestedSentence('');
+  };
+
   const checkGrammar = async (sentence: string) => {
     const response = await fetch('/api/checkgrammar', {
       method: 'POST',
@@ -191,13 +198,17 @@ export default function Home() {
                   ]}
                 />
               </div>
+              {!rephrasedSentences ? (
+                <Button
+                  onClick={() => generateSentence(sentence, vibe)}
+                  disabled={loading || !sentence || sentence.length < 7}
+                >
+                  Rephrase
+                </Button>
+              ) : (
+                <Button onClick={tryAgain}>Try again</Button>
+              )}
 
-              <Button
-                onClick={() => generateSentence(sentence, vibe)}
-                disabled={loading || !sentence || sentence.length < 7}
-              >
-                Rephrase
-              </Button>
               <p className='text-xs text-center'></p>
             </div>
 

@@ -247,7 +247,10 @@ export default function Home() {
         </div>
       </main>
       <footer className='container mx-auto max-w-prose'>
-        <hr className='mb-5' />
+        <p className='text-center text-sm text-gray-400'>
+          This app uses ChatGPT and may produce inaccurate results
+        </p>
+        <hr className='mb-5 mt-2' />
         <div className='flex flex-row justify-between items-center mb-8'>
           <div>
             <p>

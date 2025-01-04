@@ -1,46 +1,86 @@
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { Inter } from 'next/font/google';
-import { TextField, Button, Select } from '@/components/form';
-import { Card } from '@/components/suggestion';
 import { Toaster, toast } from 'react-hot-toast';
-import { AiFillGithub, AiOutlineTwitter } from 'react-icons/ai';
 import Head from 'next/head';
+import Header from '@/components/Header';
+import InputSection from '@/components/InputSection';
+import ToneSelector from '@/components/ToneSelector';
+import RephrasedSentences from '@/components/RephrasedSentences';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/form';
+import { cleanUpString } from '@/utils/string';
 
 const inter = Inter({ subsets: ['latin'] });
 
-function cleanUpString(str: string) {
-  // Remove leading and trailing spaces, newlines, and tabs
-  str = str.trim().replace(/[\n\t]/g, '');
-  // Remove extra spaces between words
-  str = str.replace(/\s+/g, ' ');
-  str = str.toLowerCase();
+interface State {
+  sentence: string;
+  vibe: string;
+  rephrasedSentences: string;
+  loading: boolean;
+  correctGrammar: boolean;
+  suggestedSentence: string;
+}
 
-  return str;
+type Action =
+  | { type: 'SET_SENTENCE'; payload: string }
+  | { type: 'SET_VIBE'; payload: string }
+  | { type: 'SET_REPHRASED_SENTENCES'; payload: string }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_CORRECT_GRAMMAR'; payload: boolean }
+  | { type: 'SET_SUGGESTED_SENTENCE'; payload: string }
+  | { type: 'RESET' };
+
+const initialState: State = {
+  sentence: '',
+  vibe: 'casual',
+  rephrasedSentences: '',
+  loading: false,
+  correctGrammar: true,
+  suggestedSentence: '',
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SET_SENTENCE':
+      return { ...state, sentence: action.payload };
+    case 'SET_VIBE':
+      return { ...state, vibe: action.payload };
+    case 'SET_REPHRASED_SENTENCES':
+      return { ...state, rephrasedSentences: action.payload };
+    case 'SET_LOADING':
+      return { ...state, loading: action.payload };
+    case 'SET_CORRECT_GRAMMAR':
+      return { ...state, correctGrammar: action.payload };
+    case 'SET_SUGGESTED_SENTENCE':
+      return { ...state, suggestedSentence: action.payload };
+    case 'RESET':
+      return initialState;
+    default:
+      throw new Error();
+  }
 }
 
 export default function Home() {
-  const [sentence, setSentence] = useState('');
-  const [vibe, setVibe] = useState('casual');
-  const [rephrasedSentences, setRephrasedSentences] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [correctGrammar, setCorrectGrammar] = useState(true);
-  const [suggestedSentence, setSuggestedSentence] = useState('');
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const generateSentence = async (sentence: string, vibe: string) => {
-    setLoading(true);
-    setCorrectGrammar(true);
-    setSuggestedSentence('');
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_CORRECT_GRAMMAR', payload: true });
+    dispatch({ type: 'SET_SUGGESTED_SENTENCE', payload: '' });
     sentence = cleanUpString(sentence);
 
-    setRephrasedSentences('');
+    dispatch({ type: 'SET_REPHRASED_SENTENCES', payload: '' });
 
     const grammarCheck = await checkGrammar(sentence);
     const isGrammaticallyCorrect = grammarCheck?.grammarCheck === 'true';
     const suggestedSentence = grammarCheck?.suggestedSentence;
 
     if (!isGrammaticallyCorrect) {
-      setCorrectGrammar(false);
-      setSuggestedSentence(suggestedSentence || '');
+      dispatch({ type: 'SET_CORRECT_GRAMMAR', payload: false });
+      dispatch({
+        type: 'SET_SUGGESTED_SENTENCE',
+        payload: suggestedSentence || '',
+      });
     }
 
     const response = await fetch('/api/generate', {
@@ -58,9 +98,8 @@ export default function Home() {
       toast('An error occured, please try again.', {
         icon: '⛔',
       });
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
       return;
-      // throw new Error(response.statusText);
     }
     const data = response.body;
     if (!data) return;
@@ -72,17 +111,17 @@ export default function Home() {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
       const chunkValue = decoder.decode(value);
-      setRephrasedSentences((prev) => prev + chunkValue);
+      dispatch({
+        type: 'SET_REPHRASED_SENTENCES',
+        payload: state.rephrasedSentences + chunkValue,
+      });
     }
 
-    setLoading(false);
+    dispatch({ type: 'SET_LOADING', payload: false });
   };
 
   const tryAgain = () => {
-    setSentence('');
-    setRephrasedSentences('');
-    setCorrectGrammar(true);
-    setSuggestedSentence('');
+    dispatch({ type: 'RESET' });
   };
 
   const checkGrammar = async (sentence: string) => {
@@ -90,7 +129,7 @@ export default function Home() {
       method: 'POST',
       body: JSON.stringify({
         sentence,
-        vibe,
+        vibe: state.vibe,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -101,9 +140,8 @@ export default function Home() {
       toast('An error occured, please try again.', {
         icon: '⛔',
       });
-      setLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
       return;
-      // throw new Error(response.statusText);
     }
     const data = response.body;
     if (!data) return;
@@ -119,14 +157,10 @@ export default function Home() {
       text += chunkValue;
     }
 
-    // Find the index of the newline character (\n) to split the string
     const newlineIndex = text.indexOf('\n');
-
-    // Extract the substrings before and after the newline character
     const grammarCheckString = text.substring(0, newlineIndex);
     const suggestedSentenceString = text.substring(newlineIndex + 1);
 
-    // Remove the leading and trailing spaces from the extracted substrings
     const grammarCheck = grammarCheckString
       .toLowerCase()
       .replace('grammarcheck:', '')
@@ -146,7 +180,7 @@ export default function Home() {
         <title>Rephraser</title>
       </Head>
       <main
-        className={`flex  flex-col items-center min-h-[90vh] justify-start ${inter.className}`}
+        className={`flex flex-col items-center min-h-[90vh] justify-start ${inter.className}`}
       >
         <Toaster
           position='top-center'
@@ -155,53 +189,35 @@ export default function Home() {
         />
         <div className='bg-neutral w-full h-10 md:h-20 mb-10'></div>
         <div className='max-w-prose px-8 md:px-0'>
-          <div className='flex  flex-col items-center justify-start py-2'>
-            <header className='mb-10 md:mb-16'>
-              <h1 className='text-3xl font-bold underline leading-relaxed text-center'>
-                Rephraser
-              </h1>
-              <p>A rephraser and grammar checker app powered by OpenAI API.</p>
-            </header>
-            <div className='w-full flex flex-col gap-5'>
-              <div>
-                <TextField
-                  className='rounded border-2 border-neutral w-full max-w-full'
-                  onChange={(e) => {
-                    setSentence(e.target.value);
-                  }}
-                  value={sentence}
-                />
+          <div className='flex flex-col items-center justify-start py-2'>
+            <Header
+              title='Rephraser'
+              description='A rephraser and grammar checker app powered by OpenAI API.'
+            />
 
-                {!correctGrammar && (
-                  <>
-                    <p className={`text-sm mt-2 `}>Suggested Sentence:</p>
-                    <p className='text-xs text-gray-500 mt-2'>
-                      {`${suggestedSentence}`}
-                    </p>
-                  </>
-                )}
-              </div>
-              <div className='flex flex-col sm:flex-row justify-between gap-5 items-center'>
-                <p>Select tone:</p>
-                <Select
-                  className='rounded w-full max-w-full sm:max-w-xs'
-                  onChange={(e) => setVibe(e.target.value)}
-                  value={vibe}
-                  options={[
-                    'Professional',
-                    'Conversational',
-                    'Humorous',
-                    'Empatic',
-                    'Academic',
-                    'Simple',
-                    'Creative',
-                  ]}
-                />
-              </div>
-              {!rephrasedSentences ? (
+            <div className='w-full flex flex-col gap-5'>
+              <InputSection
+                sentence={state.sentence}
+                setSentence={(value) =>
+                  dispatch({ type: 'SET_SENTENCE', payload: value })
+                }
+                correctGrammar={state.correctGrammar}
+                suggestedSentence={state.suggestedSentence}
+              />
+              <ToneSelector
+                vibe={state.vibe}
+                setVibe={(value) =>
+                  dispatch({ type: 'SET_VIBE', payload: value })
+                }
+              />
+              {!state.rephrasedSentences ? (
                 <Button
-                  onClick={() => generateSentence(sentence, vibe)}
-                  disabled={loading || !sentence || sentence.length < 7}
+                  onClick={() => generateSentence(state.sentence, state.vibe)}
+                  disabled={
+                    state.loading ||
+                    !state.sentence ||
+                    state.sentence.length < 7
+                  }
                 >
                   Rephrase
                 </Button>
@@ -212,84 +228,11 @@ export default function Home() {
               <p className='text-xs text-center'></p>
             </div>
 
-            <div className='w-full mt-10'>
-              {rephrasedSentences && (
-                <>
-                  <hr />
-                  <h3 className='text-center text-xl mt-3 mb-5 font-semibold'>
-                    Rephrased Sentences
-                  </h3>
-                  {rephrasedSentences.split('\n').map((sentence, index) => {
-                    if (sentence.length < 7) return;
-                    sentence = sentence
-                      .replace('- ', '')
-                      .replace(/^\d+\.\s/gm, '')
-                      .replace(/"/g, '')
-                      .trim();
-                    return (
-                      <Card
-                        text={sentence}
-                        key={index}
-                        className='text-center w-full mb-5'
-                        onClick={() => {
-                          navigator.clipboard.writeText(sentence);
-                          toast('Sentence have been copied to clipboard', {
-                            icon: '✂️',
-                          });
-                        }}
-                      />
-                    );
-                  })}
-                </>
-              )}
-            </div>
+            <RephrasedSentences rephrasedSentences={state.rephrasedSentences} />
           </div>
         </div>
       </main>
-      <footer className='container mx-auto max-w-prose'>
-        <p className='text-center text-sm text-gray-400'>
-          This app uses ChatGPT and may produce inaccurate results
-        </p>
-        <hr className='mb-5 mt-2' />
-        <div className='flex flex-row justify-between items-center mb-8'>
-          <div>
-            <p>
-              Powered by{' '}
-              <a
-                href='https://openai.com/blog/chatgpt'
-                className='underline'
-                rel='noreferrer'
-              >
-                OpenAI
-              </a>{' '}
-              and{' '}
-              <a
-                href='https://vercel.com/'
-                className='underline'
-                rel='noreferrer'
-              >
-                Vercel
-              </a>
-            </p>
-          </div>
-          <div className='flex flex-row gap-3'>
-            <a
-              href='https://github.com/JohnPevien/rephraser
-            '
-              rel='noreferrer'
-            >
-              <AiFillGithub size={'2em'} />
-            </a>
-            <a
-              href='https://twitter.com/JohnPevien
-            '
-              rel='noreferrer'
-            >
-              <AiOutlineTwitter size={'2em'} />
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
